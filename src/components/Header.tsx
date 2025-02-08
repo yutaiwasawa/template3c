@@ -38,10 +38,14 @@ const Header = ({ siteConfig }: HeaderProps) => {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    const element = document.querySelector(url);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsOpen(false);
+    if (url.startsWith('#')) {
+      const element = document.querySelector(url);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setIsOpen(false);
+      }
+    } else {
+      window.location.href = url;
     }
   };
 
