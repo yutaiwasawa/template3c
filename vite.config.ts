@@ -1,7 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
@@ -28,10 +27,18 @@ export default defineConfig(({ mode }) => {
               console.log('proxy error', err);
             });
             proxy.on('proxyReq', (proxyReq, req, _res) => {
-              console.log('Sending Request to Notion:', req.method, req.url);
+              console.log('Sending Request to Notion:', {
+                method: req.method,
+                url: req.url,
+                headers: proxyReq.getHeaders()
+              });
             });
             proxy.on('proxyRes', (proxyRes, req, _res) => {
-              console.log('Received Response from Notion:', proxyRes.statusCode, req.url);
+              console.log('Received Response from Notion:', {
+                statusCode: proxyRes.statusCode,
+                url: req.url,
+                headers: proxyRes.headers
+              });
             });
           }
         },

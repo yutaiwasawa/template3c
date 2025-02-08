@@ -20,25 +20,35 @@ const Header = ({ siteConfig }: HeaderProps) => {
   }, []);
 
   const renderLogo = () => {
-    if (siteConfig.logo.type === 'image') {
-      return (
-        <img 
-          src={siteConfig.logo.content} 
-          alt="Logo" 
-          className="h-8 w-auto"
-        />
-      );
-    }
-    return (
+    const content = siteConfig.logo.type === 'image' ? (
+      <img 
+        src={siteConfig.logo.content} 
+        alt="Logo" 
+        className="h-8 w-auto"
+      />
+    ) : (
       <span className="text-white text-2xl font-bold">
         {siteConfig.logo.content}
       </span>
+    );
+
+    return (
+      <a 
+        href="/" 
+        className="hover:opacity-80 transition-opacity"
+        onClick={(e) => handleNavClick(e, '/')}
+      >
+        {content}
+      </a>
     );
   };
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    if (url.startsWith('#')) {
+    if (url === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setIsOpen(false);
+    } else if (url.startsWith('#')) {
       const element = document.querySelector(url);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
@@ -54,10 +64,15 @@ const Header = ({ siteConfig }: HeaderProps) => {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")',
+          backgroundImage: `url("${siteConfig.header.heroImage}")`,
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-indigo-900/90"></div>
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to right, ${siteConfig.header.overlayColors.from}${Math.round(siteConfig.header.overlayColors.opacity * 255).toString(16).padStart(2, '0')}, ${siteConfig.header.overlayColors.to}${Math.round(siteConfig.header.overlayColors.opacity * 255).toString(16).padStart(2, '0')})`
+          }}
+        ></div>
       </div>
       
       <motion.nav
@@ -139,7 +154,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           transition={{ delay: 0.3 }}
           className="text-purple-400 uppercase tracking-widest mb-4"
         >
-          Digital Marketing Agency
+          {siteConfig.header.tagline}
         </motion.p>
         <motion.h1
           initial={{ scale: 0.5, opacity: 0 }}
@@ -147,7 +162,12 @@ const Header = ({ siteConfig }: HeaderProps) => {
           transition={{ duration: 0.5 }}
           className="text-5xl md:text-7xl font-bold text-center mb-6 leading-tight"
         >
-          デジタルの力で、<br />ビジネスの未来を創造する
+          {siteConfig.header.title.map((line, index) => (
+            <React.Fragment key={index}>
+              {line}
+              {index < siteConfig.header.title.length - 1 && <br />}
+            </React.Fragment>
+          ))}
         </motion.h1>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
@@ -155,16 +175,21 @@ const Header = ({ siteConfig }: HeaderProps) => {
           transition={{ delay: 0.7 }}
           className="text-xl text-gray-300 mb-8 text-center max-w-2xl"
         >
-          戦略的なデジタルマーケティングで、あなたのビジネスを次のステージへ
+          {siteConfig.header.subtitle.map((line, index) => (
+            <React.Fragment key={index}>
+              {line}
+              {index < siteConfig.header.subtitle.length - 1 && <br />}
+            </React.Fragment>
+          ))}
         </motion.p>
         <motion.a
-          href="#about"
-          onClick={(e) => handleNavClick(e, '#about')}
+          href={siteConfig.header.ctaUrl}
+          onClick={(e) => handleNavClick(e, siteConfig.header.ctaUrl)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full transition duration-300 uppercase tracking-wider text-sm"
         >
-          私たちについて
+          {siteConfig.header.ctaText}
         </motion.a>
       </motion.div>
     </header>
