@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SiteConfig } from '../lib/notion';
+import { fetchNavigation } from '../lib/notion-client';
+import type { NavigationItem } from '../types/notion';
 
 interface HeaderProps {
   siteConfig: SiteConfig;
@@ -17,12 +19,36 @@ const DEFAULT_NAVIGATION = [
 const Header = ({ siteConfig }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [navigation, setNavigation] = useState<NavigationItem[]>(DEFAULT_NAVIGATION.map(item => ({
+    ...item,
+    headerOrder: 0,
+    footerOrder: 0,
+    showInHeader: true,
+    showInFooter: false
+  })));
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
+
+    // ナビゲーションデータの取得
+    const loadNavigation = async () => {
+      try {
+        const navItems = await fetchNavigation();
+        if (navItems.length > 0) {
+          const headerItems = navItems
+            .filter(item => item.showInHeader)
+            .sort((a, b) => a.headerOrder - b.headerOrder);
+          setNavigation(headerItems);
+        }
+      } catch (error) {
+        console.error('ナビゲーションの読み込みに失敗しました:', error);
+      }
+    };
+
+    loadNavigation();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -73,11 +99,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           backgroundImage: 'url("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
-          {/* style={{
-            background: `linear-gradient(to right, ${siteConfig.mainColor}E6, ${siteConfig.accentColor}E6)`
-          }} */}
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-indigo-900/90" />
       </div>
       
       <motion.nav
@@ -86,9 +108,6 @@ const Header = ({ siteConfig }: HeaderProps) => {
         className={`fixed w-full z-50 transition-all duration-300 ${
           isScrolled ? 'bg-black/90 backdrop-blur-sm shadow-lg' : ''
         }`}
-        // style={{
-        //   backgroundColor: isScrolled ? `${siteConfig.baseColor}E6` : 'transparent'
-        // }}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <motion.div
@@ -100,16 +119,12 @@ const Header = ({ siteConfig }: HeaderProps) => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8">
-            {DEFAULT_NAVIGATION.map((item, index) => (
+            {navigation.map((item, index) => (
               <motion.a
                 key={`desktop-nav-${index}`}
                 href={item.url}
                 onClick={(e) => handleNavClick(e, item.url)}
                 className="text-white hover:text-purple-400 text-sm uppercase tracking-wider transition-colors"
-                // style={{ 
-                //   color: siteConfig.fontColor,
-                //   ':hover': { color: siteConfig.accentColor }
-                // }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -123,7 +138,6 @@ const Header = ({ siteConfig }: HeaderProps) => {
             className="md:hidden text-white"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
-            // style={{ color: siteConfig.fontColor }}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -137,19 +151,14 @@ const Header = ({ siteConfig }: HeaderProps) => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden bg-black/95 backdrop-blur-sm"
-              // style={{ backgroundColor: `${siteConfig.baseColor}F2` }}
             >
               <div className="px-6 py-4 space-y-4">
-                {DEFAULT_NAVIGATION.map((item, index) => (
+                {navigation.map((item, index) => (
                   <motion.a
                     key={`mobile-nav-${index}`}
                     href={item.url}
                     onClick={(e) => handleNavClick(e, item.url)}
                     className="block text-white hover:text-purple-400 text-sm uppercase tracking-wider"
-                    // style={{ 
-                    //   color: siteConfig.fontColor,
-                    //   ':hover': { color: siteConfig.accentColor }
-                    // }}
                     whileHover={{ x: 10 }}
                   >
                     {item.label}
@@ -166,14 +175,12 @@ const Header = ({ siteConfig }: HeaderProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
         className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-white"
-        // style={{ color: siteConfig.fontColor }}
       >
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
           className="text-purple-400 uppercase tracking-widest mb-4"
-          // style={{ color: siteConfig.accentColor }}
         >
           Digital Marketing Agency
         </motion.p>
@@ -190,7 +197,6 @@ const Header = ({ siteConfig }: HeaderProps) => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7 }}
           className="text-xl text-gray-300 mb-8 text-center max-w-2xl"
-          // style={{ color: `${siteConfig.fontColor}CC` }}
         >
           戦略的なデジタルマーケティングで、あなたのビジネスを次のステージへ
         </motion.p>
@@ -200,11 +206,6 @@ const Header = ({ siteConfig }: HeaderProps) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full transition duration-300 uppercase tracking-wider text-sm"
-          // style={{ 
-          //   backgroundColor: siteConfig.mainColor,
-          //   color: siteConfig.fontColor,
-          //   ':hover': { backgroundColor: siteConfig.accentColor }
-          // }}
         >
           私たちについて
         </motion.a>

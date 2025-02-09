@@ -16,7 +16,7 @@ export async function fetchCommonConfig(): Promise<CommonConfig | null> {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch common config');
+      throw new Error('設定の取得に失敗しました');
     }
 
     const data = await response.json();
@@ -24,32 +24,24 @@ export async function fetchCommonConfig(): Promise<CommonConfig | null> {
 
     if (!page) return null;
 
-    const logoType = page.properties.LogoType.select?.name || 'text';
     let logoContent = '';
+    let logoType: 'text' | 'image' = 'text';
 
-    // LogoTypeに基づいて適切なプロパティから値を取得
-    if (logoType === 'text') {
-      // テキストロゴの場合
+    // 画像ロゴの確認
+    const logoImage = page.properties.LogoImage?.files[0];
+    if (logoImage) {
+      logoType = 'image';
+      if (logoImage.file?.url) {
+        logoContent = logoImage.file.url;
+      } else if (logoImage.external?.url) {
+        logoContent = logoImage.external.url;
+      }
+    }
+
+    // 画像が設定されていない場合はテキストを使用
+    if (!logoContent) {
       logoContent = page.properties.LogoText?.rich_text[0]?.plain_text || 'PIXEL/FLOW';
-    } else {
-      // 画像ロゴの場合
-      const logoFile = page.properties.LogoImage?.files[0];
-      if (logoFile) {
-        // Notionにアップロードされた画像の場合
-        if (logoFile.file?.url) {
-          logoContent = logoFile.file.url;
-        }
-        // 外部URLの場合
-        else if (logoFile.external?.url) {
-          logoContent = logoFile.external.url;
-        }
-      }
-      
-      // 画像が設定されていない場合は、LogoTextをフォールバックとして使用
-      if (!logoContent) {
-        logoContent = page.properties.LogoText?.rich_text[0]?.plain_text || 'PIXEL/FLOW';
-        logoType = 'text'; // 画像が無い場合はテキストモードにフォールバック
-      }
+      logoType = 'text';
     }
 
     return {
@@ -62,7 +54,44 @@ export async function fetchCommonConfig(): Promise<CommonConfig | null> {
       logoContent
     };
   } catch (error) {
-    console.error('Error fetching common config:', error);
+    console.error('共通設定の取得に失敗しました:', error);
     return null;
+  }
+}
+
+export async function fetchNavigation(): Promise<NavigationItem[]> {
+  try {
+    const response = await fetch(`/api/notion/v1/databases/${NAVIGATION_DB_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sorts: [
+          {
+            property: 'HeaderOrder',
+            direction: 'ascending'
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('ナビゲーションの取得に失敗しました');
+    }
+
+    const data = await response.json();
+    
+    return data.results.map((page: any) => ({
+      label: page.properties.Label.title[0]?.plain_text || '',
+      url: page.properties.URL.url || '#',
+      headerOrder: page.properties.HeaderOrder.number || 0,
+      footerOrder: page.properties.FooterOrder.number || 0,
+      showInHeader: page.properties.ShowInHeader.checkbox || false,
+      showInFooter: page.properties.ShowInFooter.checkbox || false
+    }));
+  } catch (error) {
+    console.error('ナビゲーションの取得に失敗しました:', error);
+    return [];
   }
 }

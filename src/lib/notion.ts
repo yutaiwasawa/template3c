@@ -39,10 +39,10 @@ const isValidColor = (color: string): boolean => {
 export const getSiteConfig = async (): Promise<SiteConfig> => {
   try {
     const token = import.meta.env.VITE_NOTION_TOKEN;
-    const dbId = import.meta.env.VITE_NOTION_SITE_CONFIG_DB_ID;
+    const dbId = import.meta.env.VITE_NOTION_COMMON_DB_ID; // SITE_CONFIG_DB_IDからCOMMON_DB_IDに変更
 
     if (!token || !dbId) {
-      console.warn('Notion credentials not found:', { token: !!token, dbId: !!dbId });
+      console.warn('Notionの認証情報が見つかりません:', { token: !!token, dbId: !!dbId });
       return DEFAULT_CONFIG;
     }
 
@@ -54,14 +54,14 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Notion API error: ${response.status}`);
+      throw new Error(`Notion APIエラー: ${response.status}`);
     }
 
     const data = await response.json();
     const commonPage = data.results[0];
 
     if (!commonPage) {
-      console.warn('No common configuration found in Notion');
+      console.warn('Notionに設定が見つかりません');
       return DEFAULT_CONFIG;
     }
 
@@ -86,7 +86,7 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
 
     // ロゴの色が有効なカラーコードでない場合はデフォルト値を使用
     if (!isValidColor(logoColor)) {
-      console.warn('Invalid logo color:', logoColor);
+      console.warn('無効なロゴカラー:', logoColor);
       logoColor = DEFAULT_CONFIG.logo.color;
     }
 
@@ -107,14 +107,14 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
     ['baseColor', 'mainColor', 'accentColor', 'fontColor'].forEach((colorKey) => {
       const color = config[colorKey as keyof SiteConfig] as string;
       if (!isValidColor(color)) {
-        console.warn(`Invalid color for ${colorKey}:`, color);
+        console.warn(`無効なカラーコード ${colorKey}:`, color);
         config[colorKey as keyof SiteConfig] = DEFAULT_CONFIG[colorKey as keyof SiteConfig];
       }
     });
 
     return config;
   } catch (error) {
-    console.error('Failed to fetch Notion configuration:', error);
+    console.error('Notion設定の取得に失敗しました:', error);
     return DEFAULT_CONFIG;
   }
 };
