@@ -30,7 +30,7 @@ export interface HeroSection {
   ctaUrl: string;
   ctaColor: string;
   ctaHoverColor: string;
-  imagePublicId: string;
+  heroImage: string;
   overlayFrom: string;
   overlayTo: string;
   overlayOpacity: number;
@@ -41,6 +41,7 @@ export interface AboutSection {
   active: boolean;
   mainTitle: string;
   subTitle: string;
+  description: string | null;
   ctaText: string;
   ctaUrl: string;
   ctaColor: string;

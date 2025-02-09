@@ -7,27 +7,15 @@ interface HeroProps {
   onCtaClick: (e: React.MouseEvent<HTMLAnchorElement>, url: string) => void;
 }
 
-const getCloudinaryUrl = (publicId: string): string => {
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  
-  if (!publicId || !cloudName) {
-    return 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80';
-  }
-
-  const transformations = 'f_auto,q_auto:good,w_2000';
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${publicId}`;
-};
-
 const Hero = ({ data, onCtaClick }: HeroProps) => {
   const isExternalUrl = data.ctaUrl.startsWith('http') || data.ctaUrl.startsWith('https');
-  const imageUrl = getCloudinaryUrl(data.imagePublicId);
 
   return (
     <header className="relative h-screen">
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url("${imageUrl}")`,
+          backgroundImage: `url("${data.heroImage}")`,
         }}
       >
         <div 

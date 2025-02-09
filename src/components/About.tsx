@@ -1,50 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import type { AboutSection } from '../types/notion';
-import { fetchAboutSection } from '../lib/notion-client';
 
-const getCloudinaryUrl = (publicId: string): string => {
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  
-  if (!publicId || !cloudName) {
-    return 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';
-  }
+interface AboutProps {
+  aboutData: AboutSection | null;
+}
 
-  const transformations = 'f_auto,q_auto:good,w_800';
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${publicId}`;
-};
-
-const About = () => {
-  const [aboutData, setAboutData] = useState<AboutSection | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchAboutSection();
-        if (data) {
-          setAboutData(data);
-        }
-      } catch (error) {
-        // Error handling
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
+const About = ({ aboutData }: AboutProps) => {
+  if (!aboutData || !aboutData.active) {
     return null;
   }
-
-  if (!aboutData?.active) {
-    return null;
-  }
-
-  const imageUrl = getCloudinaryUrl(aboutData.imagePublicId);
 
   return (
     <section id="about" className="py-20 bg-black">
@@ -55,24 +20,34 @@ const About = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-4xl font-bold mb-6 text-white">
-            {aboutData.mainTitle}<br />
-            <span className="text-purple-400">{aboutData.subTitle}</span>
-          </h2>
-          <p className="text-gray-400 mb-6">
-            私たちは2015年の創業以来、600社以上のデジタルマーケティング支援を行ってきました。時代とともに変化するデジタル環境において、最新のテクノロジーと確かな戦略で、クライアント企業の成長をサポートしています。
-          </p>
-          <p className="text-gray-400 mb-8">
-            業界や規模を問わず、お客様一社一社に最適なデジタルマーケティング戦略を提案し、継続的な成果創出を実現してきました。私たちの強みは、データ分析に基づく戦略立案と、それを実行に移す実践力にあります。
-          </p>
+          <h2 className="text-4xl font-bold mb-6 text-white">{aboutData.mainTitle}<br /><span className="text-purple-400">{aboutData.subTitle}</span></h2>
+          {aboutData.description && (
+            <div className="text-gray-400 mb-8 whitespace-pre-line">
+              {aboutData.description}
+            </div>
+          )}
           <motion.a
             href={aboutData.ctaUrl}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={{
-              backgroundColor: aboutData.ctaColor,
+            initial={false}
+            animate={{
+              backgroundColor: aboutData.ctaColor
             }}
-            className="inline-block text-white px-8 py-3 rounded-full transition duration-300 uppercase tracking-wider text-sm hover:bg-opacity-90"
+            whileHover={{ 
+              scale: 1.05,
+              backgroundColor: aboutData.ctaHoverColor
+            }}
+            whileTap={{ scale: 0.95 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+              backgroundColor: {
+                type: "tween",
+                duration: 0.2,
+                ease: [0.4, 0, 0.2, 1]
+              }
+            }}
+            className="inline-block text-white px-8 py-3 rounded-full uppercase tracking-wider text-sm"
           >
             {aboutData.ctaText}
           </motion.a>
@@ -86,7 +61,7 @@ const About = () => {
         >
           <div className="relative z-10">
             <img
-              src={imageUrl}
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
               alt="Digital Marketing Team"
               className="rounded-lg shadow-2xl"
             />

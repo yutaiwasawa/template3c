@@ -42,6 +42,7 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
     const dbId = import.meta.env.VITE_NOTION_COMMON_DB_ID;
 
     if (!token || !dbId) {
+      console.warn('Missing Notion credentials, using default config');
       return DEFAULT_CONFIG;
     }
 
@@ -49,17 +50,20 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Notion-Version': '2022-06-28'
       }
     });
 
     if (!response.ok) {
-      return DEFAULT_CONFIG;
+      throw new Error(`Failed to fetch site config: ${response.statusText}`);
     }
 
     const data = await response.json();
     const commonPage = data.results[0];
 
     if (!commonPage) {
+      console.warn('No site config found, using default');
       return DEFAULT_CONFIG;
     }
 
@@ -105,6 +109,7 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
 
     return config;
   } catch (error) {
+    console.error('Error fetching site config:', error);
     return DEFAULT_CONFIG;
   }
 };

@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => {
             'Authorization': `Bearer ${env.VITE_NOTION_TOKEN}`,
             'Notion-Version': '2022-06-28',
           },
+          secure: true,
+          ws: true,
         },
       },
     },

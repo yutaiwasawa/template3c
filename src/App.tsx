@@ -6,30 +6,35 @@ import Blog from './components/Blog';
 import Services from './components/Services';
 import Contact from './components/Contact';
 import { getSiteConfig, SiteConfig, DEFAULT_CONFIG } from './lib/notion';
-import { fetchHeroSection } from './lib/notion-client';
-import type { HeroSection } from './types/notion';
+import { fetchHeroSection, fetchAboutSection } from './lib/notion-client';
+import type { HeroSection, AboutSection } from './types/notion';
 import Hero from './components/Hero';
 
 function App() {
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
   const [heroData, setHeroData] = useState<HeroSection | null>(null);
+  const [aboutData, setAboutData] = useState<AboutSection | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [config, hero] = await Promise.all([
+        const [config, hero, about] = await Promise.all([
           getSiteConfig(),
-          fetchHeroSection()
+          fetchHeroSection(),
+          fetchAboutSection()
         ]);
 
         setSiteConfig(config);
         if (hero) {
           setHeroData(hero);
         }
+        if (about) {
+          setAboutData(about);
+        }
       } catch (error) {
-        // エラー時はデフォルト設定を維持
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -76,7 +81,7 @@ function App() {
               onCtaClick={handleHeroCtaClick}
             />
           )}
-          <About />
+          <About aboutData={aboutData} />
           <Blog />
           <Services />
           <Contact />
