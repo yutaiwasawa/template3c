@@ -6,7 +6,6 @@ const COMMON_DB_ID = import.meta.env.VITE_NOTION_COMMON_DB_ID;
 const NAVIGATION_DB_ID = import.meta.env.VITE_NOTION_NAVIGATION_DB_ID;
 const HERO_DB_ID = import.meta.env.VITE_NOTION_HERO_DB_ID;
 
-// テキストの改行処理を行う関数
 const formatText = (text: string): string => {
   return text.replace(/_/g, '\n');
 };

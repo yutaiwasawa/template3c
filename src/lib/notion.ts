@@ -39,10 +39,9 @@ const isValidColor = (color: string): boolean => {
 export const getSiteConfig = async (): Promise<SiteConfig> => {
   try {
     const token = import.meta.env.VITE_NOTION_TOKEN;
-    const dbId = import.meta.env.VITE_NOTION_COMMON_DB_ID; // SITE_CONFIG_DB_IDからCOMMON_DB_IDに変更
+    const dbId = import.meta.env.VITE_NOTION_COMMON_DB_ID;
 
     if (!token || !dbId) {
-      console.warn('Notionの認証情報が見つかりません:', { token: !!token, dbId: !!dbId });
       return DEFAULT_CONFIG;
     }
 
@@ -54,23 +53,20 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Notion APIエラー: ${response.status}`);
+      return DEFAULT_CONFIG;
     }
 
     const data = await response.json();
     const commonPage = data.results[0];
 
     if (!commonPage) {
-      console.warn('Notionに設定が見つかりません');
       return DEFAULT_CONFIG;
     }
 
-    // ロゴの設定を取得
     let logoType: 'text' | 'image' = 'text';
     let logoContent = DEFAULT_CONFIG.logo.content;
     let logoColor = commonPage.properties.LogoColor?.rich_text[0]?.plain_text || DEFAULT_CONFIG.logo.color;
 
-    // 画像ロゴの確認
     const logoImage = commonPage.properties.LogoImage?.files[0];
     if (logoImage) {
       logoType = 'image';
@@ -80,13 +76,10 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
         logoContent = logoImage.external.url;
       }
     } else {
-      // 画像が設定されていない場合はテキストを使用
       logoContent = commonPage.properties.LogoText?.rich_text[0]?.plain_text || DEFAULT_CONFIG.logo.content;
     }
 
-    // ロゴの色が有効なカラーコードでない場合はデフォルト値を使用
     if (!isValidColor(logoColor)) {
-      console.warn('無効なロゴカラー:', logoColor);
       logoColor = DEFAULT_CONFIG.logo.color;
     }
 
@@ -103,18 +96,15 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
       font: commonPage.properties.Font?.select?.name || DEFAULT_CONFIG.font
     };
 
-    // カラーコードの検証
     ['baseColor', 'mainColor', 'accentColor', 'fontColor'].forEach((colorKey) => {
       const color = config[colorKey as keyof SiteConfig] as string;
       if (!isValidColor(color)) {
-        console.warn(`無効なカラーコード ${colorKey}:`, color);
         config[colorKey as keyof SiteConfig] = DEFAULT_CONFIG[colorKey as keyof SiteConfig];
       }
     });
 
     return config;
   } catch (error) {
-    console.error('Notion設定の取得に失敗しました:', error);
     return DEFAULT_CONFIG;
   }
 };
