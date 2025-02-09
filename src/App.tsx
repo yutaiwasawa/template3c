@@ -35,7 +35,14 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div 
+      className="min-h-screen"
+      style={{
+        backgroundColor: siteConfig.baseColor,
+        color: siteConfig.fontColor,
+        fontFamily: siteConfig.font
+      }}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           initial={{ opacity: 0 }}

@@ -4,51 +4,26 @@ export interface SiteConfig {
   logo: {
     type: 'text' | 'image';
     content: string;
+    color: string;
   };
-  navigation: {
-    label: string;
-    url: string;
-    order: number;
-  }[];
-  header: {
-    tagline: string;
-    title: string[];
-    subtitle: string[];
-    ctaText: string;
-    ctaUrl: string;
-    heroImage: string;
-    overlayColors: {
-      from: string;
-      to: string;
-      opacity: number;
-    };
-  };
+  baseColor: string;
+  mainColor: string;
+  accentColor: string;
+  fontColor: string;
+  font: string;
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
   logo: {
     type: 'text',
-    content: 'PIXEL/FLOW'
+    content: 'PIXEL/FLOW',
+    color: '#ffffff'
   },
-  navigation: [
-    { label: '私たちについて', url: '#about', order: 1 },
-    { label: 'ブログ', url: '#blog', order: 2 },
-    { label: 'サービス', url: '#services', order: 3 },
-    { label: 'お問い合わせ', url: '#contact', order: 4 }
-  ],
-  header: {
-    tagline: 'Digital Marketing Agency',
-    title: ['デジタルの力で', 'ビジネスの未来を創造する'],
-    subtitle: ['戦略的なデジタルマーケティングで', 'あなたのビジネスを次のステージへ'],
-    ctaText: '私たちについて',
-    ctaUrl: '#about',
-    heroImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80',
-    overlayColors: {
-      from: '#7e22ce',
-      to: '#4338ca',
-      opacity: 0.9
-    }
-  }
+  baseColor: '#000000',
+  mainColor: '#6366f1',
+  accentColor: '#4f46e5',
+  fontColor: '#ffffff',
+  font: 'Noto Sans JP'
 };
 
 const isValidColor = (color: string): boolean => {
@@ -75,31 +50,7 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        filter: {
-          or: [
-            {
-              property: 'type',
-              select: {
-                equals: 'navigation'
-              }
-            },
-            {
-              property: 'type',
-              select: {
-                equals: 'logo'
-              }
-            },
-            {
-              property: 'type',
-              select: {
-                equals: 'header'
-              }
-            }
-          ]
-        }
-      })
+      }
     });
 
     if (!response.ok) {
@@ -107,67 +58,61 @@ export const getSiteConfig = async (): Promise<SiteConfig> => {
     }
 
     const data = await response.json();
+    const commonPage = data.results[0];
 
-    const logoPage = data.results.find(
-      (page: any) => page.properties.type?.select?.name === 'logo'
-    );
+    if (!commonPage) {
+      console.warn('No common configuration found in Notion');
+      return DEFAULT_CONFIG;
+    }
 
-    const logo = logoPage ? {
-      type: logoPage.properties.logoType?.select?.name as 'text' | 'image',
-      content: logoPage.properties.content?.rich_text[0]?.plain_text || DEFAULT_CONFIG.logo.content,
-    } : DEFAULT_CONFIG.logo;
+    // ロゴの設定を取得
+    let logoType: 'text' | 'image' = 'text';
+    let logoContent = DEFAULT_CONFIG.logo.content;
+    let logoColor = commonPage.properties.LogoColor?.rich_text[0]?.plain_text || DEFAULT_CONFIG.logo.color;
 
-    const navItems = data.results
-      .filter((page: any) => page.properties.type?.select?.name === 'navigation')
-      .map((page: any) => ({
-        label: page.properties.label?.rich_text[0]?.plain_text || '',
-        url: page.properties.url?.url || page.properties.url?.rich_text?.[0]?.plain_text || '#',
-        order: page.properties.order?.number || 0,
-      }))
-      .sort((a, b) => a.order - b.order);
-
-    const headerPage = data.results.find(
-      (page: any) => page.properties.type?.select?.name === 'header'
-    );
-
-    const header = headerPage ? {
-      tagline: headerPage.properties.tagline?.rich_text[0]?.plain_text || DEFAULT_CONFIG.header.tagline,
-      title: (headerPage.properties.title?.rich_text[0]?.plain_text || '')
-        .split('_')
-        .filter(line => line.length > 0) || DEFAULT_CONFIG.header.title,
-      subtitle: (headerPage.properties.subtitle?.rich_text[0]?.plain_text || '')
-        .split('_')
-        .filter(line => line.length > 0) || DEFAULT_CONFIG.header.subtitle,
-      ctaText: headerPage.properties.ctaText?.rich_text[0]?.plain_text || DEFAULT_CONFIG.header.ctaText,
-      ctaUrl: headerPage.properties.ctaUrl?.url || headerPage.properties.ctaUrl?.rich_text?.[0]?.plain_text || DEFAULT_CONFIG.header.ctaUrl,
-      heroImage: headerPage.properties.heroImage?.files?.[0]?.file?.url || 
-                headerPage.properties.heroImage?.files?.[0]?.external?.url ||
-                DEFAULT_CONFIG.header.heroImage,
-      overlayColors: {
-        from: headerPage.properties.overlayFrom?.rich_text[0]?.plain_text || DEFAULT_CONFIG.header.overlayColors.from,
-        to: headerPage.properties.overlayTo?.rich_text[0]?.plain_text || DEFAULT_CONFIG.header.overlayColors.to,
-        opacity: parseFloat(headerPage.properties.overlayOpacity?.rich_text[0]?.plain_text || '0.9')
+    // 画像ロゴの確認
+    const logoImage = commonPage.properties.LogoImage?.files[0];
+    if (logoImage) {
+      logoType = 'image';
+      if (logoImage.file?.url) {
+        logoContent = logoImage.file.url;
+      } else if (logoImage.external?.url) {
+        logoContent = logoImage.external.url;
       }
-    } : DEFAULT_CONFIG.header;
-
-    if (!isValidColor(header.overlayColors.from)) {
-      console.warn('Invalid "from" color:', header.overlayColors.from);
-      header.overlayColors.from = DEFAULT_CONFIG.header.overlayColors.from;
-    }
-    if (!isValidColor(header.overlayColors.to)) {
-      console.warn('Invalid "to" color:', header.overlayColors.to);
-      header.overlayColors.to = DEFAULT_CONFIG.header.overlayColors.to;
-    }
-    if (isNaN(header.overlayColors.opacity) || header.overlayColors.opacity < 0 || header.overlayColors.opacity > 1) {
-      console.warn('Invalid opacity:', header.overlayColors.opacity);
-      header.overlayColors.opacity = DEFAULT_CONFIG.header.overlayColors.opacity;
+    } else {
+      // 画像が設定されていない場合はテキストを使用
+      logoContent = commonPage.properties.LogoText?.rich_text[0]?.plain_text || DEFAULT_CONFIG.logo.content;
     }
 
-    return {
-      logo,
-      navigation: navItems.length > 0 ? navItems : DEFAULT_CONFIG.navigation,
-      header
+    // ロゴの色が有効なカラーコードでない場合はデフォルト値を使用
+    if (!isValidColor(logoColor)) {
+      console.warn('Invalid logo color:', logoColor);
+      logoColor = DEFAULT_CONFIG.logo.color;
+    }
+
+    const config: SiteConfig = {
+      logo: {
+        type: logoType,
+        content: logoContent,
+        color: logoColor
+      },
+      baseColor: commonPage.properties.BaseColor?.rich_text[0]?.plain_text || DEFAULT_CONFIG.baseColor,
+      mainColor: commonPage.properties.MainColor?.rich_text[0]?.plain_text || DEFAULT_CONFIG.mainColor,
+      accentColor: commonPage.properties.AccentColor?.rich_text[0]?.plain_text || DEFAULT_CONFIG.accentColor,
+      fontColor: commonPage.properties.FontColor?.rich_text[0]?.plain_text || DEFAULT_CONFIG.fontColor,
+      font: commonPage.properties.Font?.select?.name || DEFAULT_CONFIG.font
     };
+
+    // カラーコードの検証
+    ['baseColor', 'mainColor', 'accentColor', 'fontColor'].forEach((colorKey) => {
+      const color = config[colorKey as keyof SiteConfig] as string;
+      if (!isValidColor(color)) {
+        console.warn(`Invalid color for ${colorKey}:`, color);
+        config[colorKey as keyof SiteConfig] = DEFAULT_CONFIG[colorKey as keyof SiteConfig];
+      }
+    });
+
+    return config;
   } catch (error) {
     console.error('Failed to fetch Notion configuration:', error);
     return DEFAULT_CONFIG;

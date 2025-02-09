@@ -7,6 +7,13 @@ interface HeaderProps {
   siteConfig: SiteConfig;
 }
 
+const DEFAULT_NAVIGATION = [
+  { label: '私たちについて', url: '#about' },
+  { label: 'ブログ', url: '#blog' },
+  { label: 'サービス', url: '#services' },
+  { label: 'お問い合わせ', url: '#contact' }
+];
+
 const Header = ({ siteConfig }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,43 +27,43 @@ const Header = ({ siteConfig }: HeaderProps) => {
   }, []);
 
   const renderLogo = () => {
-    const content = siteConfig.logo.type === 'image' ? (
-      <img 
-        src={siteConfig.logo.content} 
-        alt="Logo" 
-        className="h-8 w-auto"
-      />
-    ) : (
-      <span className="text-white text-2xl font-bold">
+    if (siteConfig.logo.type === 'image') {
+      return (
+        <img 
+          src={siteConfig.logo.content} 
+          alt="Logo" 
+          className="h-8 w-auto"
+        />
+      );
+    }
+    return (
+      <span 
+        className="text-2xl font-bold"
+        style={{ color: siteConfig.logo.color }}
+      >
         {siteConfig.logo.content}
       </span>
-    );
-
-    return (
-      <a 
-        href="/" 
-        className="hover:opacity-80 transition-opacity"
-        onClick={(e) => handleNavClick(e, '/')}
-      >
-        {content}
-      </a>
     );
   };
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    if (url === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setIsOpen(false);
-    } else if (url.startsWith('#')) {
+    setIsOpen(false); // まずメニューを閉じる
+
+    // 少し遅延を入れてスクロールを実行
+    setTimeout(() => {
       const element = document.querySelector(url);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        setIsOpen(false);
+        const headerOffset = 80; // ヘッダーの高さ分のオフセット
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
       }
-    } else {
-      window.location.href = url;
-    }
+    }, 100); // メニューが閉じるのを待つ
   };
 
   return (
@@ -64,15 +71,10 @@ const Header = ({ siteConfig }: HeaderProps) => {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url("${siteConfig.header.heroImage}")`,
+          backgroundImage: 'url("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")',
         }}
       >
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(to right, ${siteConfig.header.overlayColors.from}${Math.round(siteConfig.header.overlayColors.opacity * 255).toString(16).padStart(2, '0')}, ${siteConfig.header.overlayColors.to}${Math.round(siteConfig.header.overlayColors.opacity * 255).toString(16).padStart(2, '0')})`
-          }}
-        ></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-indigo-900/90"></div>
       </div>
       
       <motion.nav
@@ -92,7 +94,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8 text-white">
-            {siteConfig.navigation.map((item, index) => (
+            {DEFAULT_NAVIGATION.map((item, index) => (
               <motion.a
                 key={`desktop-nav-${index}`}
                 href={item.url}
@@ -110,6 +112,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           <button
             className="md:hidden text-white"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -125,7 +128,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
               className="md:hidden bg-black/95 backdrop-blur-sm"
             >
               <div className="px-6 py-4 space-y-4">
-                {siteConfig.navigation.map((item, index) => (
+                {DEFAULT_NAVIGATION.map((item, index) => (
                   <motion.a
                     key={`mobile-nav-${index}`}
                     href={item.url}
@@ -154,7 +157,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           transition={{ delay: 0.3 }}
           className="text-purple-400 uppercase tracking-widest mb-4"
         >
-          {siteConfig.header.tagline}
+          Digital Marketing Agency
         </motion.p>
         <motion.h1
           initial={{ scale: 0.5, opacity: 0 }}
@@ -162,12 +165,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           transition={{ duration: 0.5 }}
           className="text-5xl md:text-7xl font-bold text-center mb-6 leading-tight"
         >
-          {siteConfig.header.title.map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              {index < siteConfig.header.title.length - 1 && <br />}
-            </React.Fragment>
-          ))}
+          デジタルの力で、<br />ビジネスの未来を創造する
         </motion.h1>
         <motion.p
           initial={{ y: 20, opacity: 0 }}
@@ -175,21 +173,16 @@ const Header = ({ siteConfig }: HeaderProps) => {
           transition={{ delay: 0.7 }}
           className="text-xl text-gray-300 mb-8 text-center max-w-2xl"
         >
-          {siteConfig.header.subtitle.map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              {index < siteConfig.header.subtitle.length - 1 && <br />}
-            </React.Fragment>
-          ))}
+          戦略的なデジタルマーケティングで、あなたのビジネスを次のステージへ
         </motion.p>
         <motion.a
-          href={siteConfig.header.ctaUrl}
-          onClick={(e) => handleNavClick(e, siteConfig.header.ctaUrl)}
+          href="#about"
+          onClick={(e) => handleNavClick(e, '#about')}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full transition duration-300 uppercase tracking-wider text-sm"
         >
-          {siteConfig.header.ctaText}
+          私たちについて
         </motion.a>
       </motion.div>
     </header>
