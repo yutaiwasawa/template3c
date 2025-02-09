@@ -1,10 +1,11 @@
 import { Client } from '@notionhq/client';
-import type { CommonConfig, NavigationItem, HeroSection } from '../types/notion';
+import type { CommonConfig, NavigationItem, HeroSection, AboutSection } from '../types/notion';
 
 const NOTION_TOKEN = import.meta.env.VITE_NOTION_TOKEN;
 const COMMON_DB_ID = import.meta.env.VITE_NOTION_COMMON_DB_ID;
 const NAVIGATION_DB_ID = import.meta.env.VITE_NOTION_NAVIGATION_DB_ID;
 const HERO_DB_ID = import.meta.env.VITE_NOTION_HERO_DB_ID;
+const ABOUT_DB_ID = import.meta.env.VITE_NOTION_ABOUT_DB_ID;
 
 const formatText = (text: string): string => {
   return text.replace(/_/g, '\n');
@@ -141,6 +142,57 @@ export async function fetchHeroSection(): Promise<HeroSection | null> {
       overlayFrom: properties.OverlayFrom?.rich_text?.[0]?.plain_text || 'rgba(99, 102, 241, 0.9)',
       overlayTo: properties.OverlayTo?.rich_text?.[0]?.plain_text || 'rgba(79, 70, 229, 0.9)',
       overlayOpacity: properties.OverlayOpacity?.number ?? 0.9
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function fetchAboutSection(): Promise<AboutSection | null> {
+  try {
+    if (!NOTION_TOKEN || !ABOUT_DB_ID) {
+      return null;
+    }
+
+    const response = await fetch(`/api/notion/v1/databases/${ABOUT_DB_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filter: {
+          property: 'Active',
+          checkbox: {
+            equals: true
+          }
+        },
+        page_size: 1
+      })
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data.results?.[0]) {
+      return null;
+    }
+
+    const page = data.results[0];
+    const properties = page.properties || {};
+
+    return {
+      name: properties.Name?.title?.[0]?.plain_text || '',
+      active: properties.Active?.checkbox ?? false,
+      mainTitle: properties.MainTitle?.rich_text?.[0]?.plain_text || '',
+      subTitle: properties.SubTitle?.rich_text?.[0]?.plain_text || '',
+      ctaText: properties.CTAText?.rich_text?.[0]?.plain_text || '',
+      ctaUrl: properties.CTAUrl?.rich_text?.[0]?.plain_text || '#',
+      ctaColor: properties.CTAColor?.rich_text?.[0]?.plain_text || '#7C3AED',
+      ctaHoverColor: properties.CTAHoverColor?.rich_text?.[0]?.plain_text || '#6D28D9',
+      imagePublicId: properties.ImagePublicId?.rich_text?.[0]?.plain_text || ''
     };
   } catch (error) {
     return null;

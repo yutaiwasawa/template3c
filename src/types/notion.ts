@@ -35,3 +35,15 @@ export interface HeroSection {
   overlayTo: string;
   overlayOpacity: number;
 }
+
+export interface AboutSection {
+  name: string;
+  active: boolean;
+  mainTitle: string;
+  subTitle: string;
+  ctaText: string;
+  ctaUrl: string;
+  ctaColor: string;
+  ctaHoverColor: string;
+  imagePublicId: string;
+}
