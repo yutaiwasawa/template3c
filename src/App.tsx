@@ -14,34 +14,22 @@ function App() {
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_CONFIG);
   const [heroData, setHeroData] = useState<HeroSection | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        setError(null);
-
-        // データ取得を並行実行
         const [config, hero] = await Promise.all([
           getSiteConfig(),
           fetchHeroSection()
         ]);
 
-        console.log('Fetched site config:', config);
-        console.log('Fetched hero data:', hero);
-
         setSiteConfig(config);
-        
         if (hero) {
-          console.log('Setting hero data:', hero);
           setHeroData(hero);
-        } else {
-          console.warn('No hero data available');
         }
       } catch (error) {
-        console.error('データの取得に失敗しました:', error);
-        setError(error instanceof Error ? error.message : '不明なエラーが発生しました');
+        // エラー時はデフォルト設定を維持
       } finally {
         setLoading(false);
       }
@@ -69,14 +57,6 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-red-500 text-xl">{error}</div>
       </div>
     );
   }
