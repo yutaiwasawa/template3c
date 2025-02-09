@@ -6,6 +6,11 @@ const COMMON_DB_ID = import.meta.env.VITE_NOTION_COMMON_DB_ID;
 const NAVIGATION_DB_ID = import.meta.env.VITE_NOTION_NAVIGATION_DB_ID;
 const HERO_DB_ID = import.meta.env.VITE_NOTION_HERO_DB_ID;
 
+// テキストの改行処理を行う関数
+const formatText = (text: string): string => {
+  return text.replace(/_/g, '\n');
+};
+
 export async function fetchNavigation(): Promise<NavigationItem[]> {
   try {
     if (!NOTION_TOKEN || !NAVIGATION_DB_ID) {
@@ -114,17 +119,22 @@ export async function fetchHeroSection(): Promise<HeroSection | null> {
     const page = data.results[0];
     const properties = page.properties || {};
 
+    const rawTitle = properties.Title?.rich_text?.[0]?.plain_text || '';
+    const rawSubtitle = properties.Subtitle?.rich_text?.[0]?.plain_text || '';
+
     return {
       name: properties.Name?.title?.[0]?.plain_text || '',
       active: properties.Active?.checkbox ?? false,
       taglineActive: properties.TaglineActive?.checkbox ?? false,
       tagline: properties.Tagline?.rich_text?.[0]?.plain_text || '',
       titleActive: properties.TitleActive?.checkbox ?? false,
-      title: properties.Title?.rich_text?.[0]?.plain_text || '',
+      title: formatText(rawTitle),
       subtitleActive: properties.SubtitleActive?.checkbox ?? false,
-      subtitle: properties.Subtitle?.rich_text?.[0]?.plain_text || '',
+      subtitle: formatText(rawSubtitle),
       ctaText: properties.CTAText?.rich_text?.[0]?.plain_text || '',
       ctaUrl: properties.CTAUrl?.rich_text?.[0]?.plain_text || '#',
+      ctaColor: properties.CTAColor?.rich_text?.[0]?.plain_text || '#7C3AED',
+      ctaHoverColor: properties.CTAHoverColor?.rich_text?.[0]?.plain_text || '#6D28D9',
       heroImage: properties.HeroImage?.files?.[0]?.external?.url || 
                 properties.HeroImage?.files?.[0]?.file?.url || 
                 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80',

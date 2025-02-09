@@ -28,6 +28,8 @@ export interface HeroSection {
   subtitle: string;
   ctaText: string;
   ctaUrl: string;
+  ctaColor: string;
+  ctaHoverColor: string;
   heroImage: string;
   overlayFrom: string;
   overlayTo: string;

@@ -8,6 +8,12 @@ interface HeroProps {
 }
 
 const Hero = ({ data, onCtaClick }: HeroProps) => {
+  // CTAボタンのスタイルを生成
+  const ctaButtonStyle = {
+    backgroundColor: data.ctaColor || '#7C3AED',
+    transition: 'background-color 0.3s ease'
+  };
+
   return (
     <header className="relative h-screen">
       <div 
@@ -63,7 +69,7 @@ const Hero = ({ data, onCtaClick }: HeroProps) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-xl text-gray-300 mb-8 text-center max-w-2xl"
+            className="text-xl text-gray-300 mb-8 text-center max-w-2xl whitespace-pre-line"
           >
             {data.subtitle}
           </motion.p>
@@ -72,9 +78,13 @@ const Hero = ({ data, onCtaClick }: HeroProps) => {
         <motion.a
           href={data.ctaUrl}
           onClick={(e) => onCtaClick(e, data.ctaUrl)}
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ 
+            scale: 1.05,
+            backgroundColor: data.ctaHoverColor || '#6D28D9'
+          }}
           whileTap={{ scale: 0.95 }}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full transition duration-300 uppercase tracking-wider text-sm"
+          className="text-white px-8 py-3 rounded-full uppercase tracking-wider text-sm"
+          style={ctaButtonStyle}
         >
           {data.ctaText}
         </motion.a>
