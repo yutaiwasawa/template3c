@@ -38,7 +38,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
     }
     return (
       <span 
-        className="text-2xl font-bold"
+        className="text-2xl font-bold text-white"
         style={{ color: siteConfig.logo.color }}
       >
         {siteConfig.logo.content}
@@ -48,13 +48,12 @@ const Header = ({ siteConfig }: HeaderProps) => {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    setIsOpen(false); // まずメニューを閉じる
+    setIsOpen(false);
 
-    // 少し遅延を入れてスクロールを実行
     setTimeout(() => {
       const element = document.querySelector(url);
       if (element) {
-        const headerOffset = 80; // ヘッダーの高さ分のオフセット
+        const headerOffset = 80;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -63,7 +62,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           behavior: 'smooth'
         });
       }
-    }, 100); // メニューが閉じるのを待つ
+    }, 100);
   };
 
   return (
@@ -74,7 +73,11 @@ const Header = ({ siteConfig }: HeaderProps) => {
           backgroundImage: 'url("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80")',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-indigo-900/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/90 to-indigo-900/90">
+          {/* style={{
+            background: `linear-gradient(to right, ${siteConfig.mainColor}E6, ${siteConfig.accentColor}E6)`
+          }} */}
+        </div>
       </div>
       
       <motion.nav
@@ -83,6 +86,9 @@ const Header = ({ siteConfig }: HeaderProps) => {
         className={`fixed w-full z-50 transition-all duration-300 ${
           isScrolled ? 'bg-black/90 backdrop-blur-sm shadow-lg' : ''
         }`}
+        // style={{
+        //   backgroundColor: isScrolled ? `${siteConfig.baseColor}E6` : 'transparent'
+        // }}
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <motion.div
@@ -93,13 +99,17 @@ const Header = ({ siteConfig }: HeaderProps) => {
           </motion.div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-8 text-white">
+          <div className="hidden md:flex space-x-8">
             {DEFAULT_NAVIGATION.map((item, index) => (
               <motion.a
                 key={`desktop-nav-${index}`}
                 href={item.url}
                 onClick={(e) => handleNavClick(e, item.url)}
-                className="hover:text-purple-400 transition-colors text-sm uppercase tracking-wider"
+                className="text-white hover:text-purple-400 text-sm uppercase tracking-wider transition-colors"
+                // style={{ 
+                //   color: siteConfig.fontColor,
+                //   ':hover': { color: siteConfig.accentColor }
+                // }}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -113,6 +123,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
             className="md:hidden text-white"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            // style={{ color: siteConfig.fontColor }}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -126,6 +137,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden bg-black/95 backdrop-blur-sm"
+              // style={{ backgroundColor: `${siteConfig.baseColor}F2` }}
             >
               <div className="px-6 py-4 space-y-4">
                 {DEFAULT_NAVIGATION.map((item, index) => (
@@ -134,6 +146,10 @@ const Header = ({ siteConfig }: HeaderProps) => {
                     href={item.url}
                     onClick={(e) => handleNavClick(e, item.url)}
                     className="block text-white hover:text-purple-400 text-sm uppercase tracking-wider"
+                    // style={{ 
+                    //   color: siteConfig.fontColor,
+                    //   ':hover': { color: siteConfig.accentColor }
+                    // }}
                     whileHover={{ x: 10 }}
                   >
                     {item.label}
@@ -149,13 +165,15 @@ const Header = ({ siteConfig }: HeaderProps) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="relative z-10 flex flex-col items-center justify-center h-full text-white px-4"
+        className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-white"
+        // style={{ color: siteConfig.fontColor }}
       >
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
           className="text-purple-400 uppercase tracking-widest mb-4"
+          // style={{ color: siteConfig.accentColor }}
         >
           Digital Marketing Agency
         </motion.p>
@@ -172,6 +190,7 @@ const Header = ({ siteConfig }: HeaderProps) => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7 }}
           className="text-xl text-gray-300 mb-8 text-center max-w-2xl"
+          // style={{ color: `${siteConfig.fontColor}CC` }}
         >
           戦略的なデジタルマーケティングで、あなたのビジネスを次のステージへ
         </motion.p>
@@ -181,6 +200,11 @@ const Header = ({ siteConfig }: HeaderProps) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full transition duration-300 uppercase tracking-wider text-sm"
+          // style={{ 
+          //   backgroundColor: siteConfig.mainColor,
+          //   color: siteConfig.fontColor,
+          //   ':hover': { backgroundColor: siteConfig.accentColor }
+          // }}
         >
           私たちについて
         </motion.a>
