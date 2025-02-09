@@ -6,61 +6,12 @@ const COMMON_DB_ID = import.meta.env.VITE_NOTION_COMMON_DB_ID;
 const NAVIGATION_DB_ID = import.meta.env.VITE_NOTION_NAVIGATION_DB_ID;
 const HERO_DB_ID = import.meta.env.VITE_NOTION_HERO_DB_ID;
 
-export async function fetchCommonConfig(): Promise<CommonConfig | null> {
-  try {
-    const response = await fetch(`/api/notion/v1/databases/${COMMON_DB_ID}/query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('設定の取得に失敗しました');
-    }
-
-    const data = await response.json();
-    const page = data.results[0];
-
-    if (!page) return null;
-
-    let logoContent = '';
-    let logoType: 'text' | 'image' = 'text';
-
-    // 画像ロゴの確認
-    const logoImage = page.properties.LogoImage?.files[0];
-    if (logoImage) {
-      logoType = 'image';
-      if (logoImage.file?.url) {
-        logoContent = logoImage.file.url;
-      } else if (logoImage.external?.url) {
-        logoContent = logoImage.external.url;
-      }
-    }
-
-    // 画像が設定されていない場合はテキストを使用
-    if (!logoContent) {
-      logoContent = page.properties.LogoText?.rich_text[0]?.plain_text || 'PIXEL/FLOW';
-      logoType = 'text';
-    }
-
-    return {
-      baseColor: page.properties.BaseColor.rich_text[0]?.plain_text || '#000000',
-      mainColor: page.properties.MainColor.rich_text[0]?.plain_text || '#6366f1',
-      accentColor: page.properties.AccentColor.rich_text[0]?.plain_text || '#4f46e5',
-      fontColor: page.properties.FontColor.rich_text[0]?.plain_text || '#ffffff',
-      font: page.properties.Font.select?.name || 'Noto Sans JP',
-      logoType,
-      logoContent
-    };
-  } catch (error) {
-    console.error('共通設定の取得に失敗しました:', error);
-    return null;
-  }
-}
-
 export async function fetchNavigation(): Promise<NavigationItem[]> {
   try {
+    if (!NOTION_TOKEN || !NAVIGATION_DB_ID) {
+      return [];
+    }
+
     const response = await fetch(`/api/notion/v1/databases/${NAVIGATION_DB_ID}/query`, {
       method: 'POST',
       headers: {
@@ -72,26 +23,116 @@ export async function fetchNavigation(): Promise<NavigationItem[]> {
             property: 'HeaderOrder',
             direction: 'ascending'
           }
-        ]
+        ],
+        filter: {
+          property: 'ShowInHeader',
+          checkbox: {
+            equals: true
+          }
+        }
       })
     });
 
     if (!response.ok) {
-      throw new Error('ナビゲーションの取得に失敗しました');
+      return [];
     }
 
     const data = await response.json();
-    
-    return data.results.map((page: any) => ({
-      label: page.properties.Label.title[0]?.plain_text || '',
-      url: page.properties.URL.url || '#',
-      headerOrder: page.properties.HeaderOrder.number || 0,
-      footerOrder: page.properties.FooterOrder.number || 0,
-      showInHeader: page.properties.ShowInHeader.checkbox || false,
-      showInFooter: page.properties.ShowInFooter.checkbox || false
-    }));
+
+    if (!data.results || !Array.isArray(data.results)) {
+      return [];
+    }
+
+    const navItems = data.results.map((page: any) => {
+      try {
+        const properties = page.properties;
+        const label = properties.Label?.title?.[0]?.plain_text || 
+                     properties.Label?.rich_text?.[0]?.plain_text || '';
+        
+        const url = properties.URL?.url || 
+                   properties.URL?.rich_text?.[0]?.plain_text || 
+                   '#';
+
+        const headerOrder = properties.HeaderOrder?.number || 0;
+        const footerOrder = properties.FooterOrder?.number || 0;
+        const showInHeader = properties.ShowInHeader?.checkbox ?? true;
+        const showInFooter = properties.ShowInFooter?.checkbox ?? false;
+
+        return {
+          label,
+          url,
+          headerOrder,
+          footerOrder,
+          showInHeader,
+          showInFooter
+        };
+      } catch (error) {
+        return null;
+      }
+    }).filter((item): item is NavigationItem => 
+      item !== null && Boolean(item.label) && Boolean(item.url)
+    );
+
+    return navItems;
   } catch (error) {
-    console.error('ナビゲーションの取得に失敗しました:', error);
     return [];
+  }
+}
+
+export async function fetchHeroSection(): Promise<HeroSection | null> {
+  try {
+    if (!NOTION_TOKEN || !HERO_DB_ID) {
+      return null;
+    }
+
+    const response = await fetch(`/api/notion/v1/databases/${HERO_DB_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        filter: {
+          property: 'Active',
+          checkbox: {
+            equals: true
+          }
+        },
+        page_size: 1
+      })
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data.results?.[0]) {
+      return null;
+    }
+
+    const page = data.results[0];
+    const properties = page.properties || {};
+
+    return {
+      name: properties.Name?.title?.[0]?.plain_text || '',
+      active: properties.Active?.checkbox ?? false,
+      taglineActive: properties.TaglineActive?.checkbox ?? false,
+      tagline: properties.Tagline?.rich_text?.[0]?.plain_text || '',
+      titleActive: properties.TitleActive?.checkbox ?? false,
+      title: properties.Title?.rich_text?.[0]?.plain_text || '',
+      subtitleActive: properties.SubtitleActive?.checkbox ?? false,
+      subtitle: properties.Subtitle?.rich_text?.[0]?.plain_text || '',
+      ctaText: properties.CTAText?.rich_text?.[0]?.plain_text || '',
+      ctaUrl: properties.CTAUrl?.rich_text?.[0]?.plain_text || '#',
+      heroImage: properties.HeroImage?.files?.[0]?.external?.url || 
+                properties.HeroImage?.files?.[0]?.file?.url || 
+                'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80',
+      overlayFrom: properties.OverlayFrom?.rich_text?.[0]?.plain_text || 'rgba(99, 102, 241, 0.9)',
+      overlayTo: properties.OverlayTo?.rich_text?.[0]?.plain_text || 'rgba(79, 70, 229, 0.9)',
+      overlayOpacity: properties.OverlayOpacity?.number ?? 0.9
+    };
+  } catch (error) {
+    return null;
   }
 }

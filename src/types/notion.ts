@@ -20,8 +20,11 @@ export interface NavigationItem {
 export interface HeroSection {
   name: string;
   active: boolean;
+  taglineActive: boolean;
   tagline: string;
+  titleActive: boolean;
   title: string;
+  subtitleActive: boolean;
   subtitle: string;
   ctaText: string;
   ctaUrl: string;
