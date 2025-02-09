@@ -118,6 +118,9 @@ export async function fetchHeroSection(): Promise<HeroSection | null> {
     const page = data.results[0];
     const properties = page.properties || {};
 
+    const imagePublicId = properties.ImagePublicId?.rich_text?.[0]?.plain_text || 
+                         properties.imagePublicId?.rich_text?.[0]?.plain_text || '';
+
     const rawTitle = properties.Title?.rich_text?.[0]?.plain_text || '';
     const rawSubtitle = properties.Subtitle?.rich_text?.[0]?.plain_text || '';
 
@@ -134,9 +137,7 @@ export async function fetchHeroSection(): Promise<HeroSection | null> {
       ctaUrl: properties.CTAUrl?.rich_text?.[0]?.plain_text || '#',
       ctaColor: properties.CTAColor?.rich_text?.[0]?.plain_text || '#7C3AED',
       ctaHoverColor: properties.CTAHoverColor?.rich_text?.[0]?.plain_text || '#6D28D9',
-      heroImage: properties.HeroImage?.files?.[0]?.external?.url || 
-                properties.HeroImage?.files?.[0]?.file?.url || 
-                'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80',
+      imagePublicId,
       overlayFrom: properties.OverlayFrom?.rich_text?.[0]?.plain_text || 'rgba(99, 102, 241, 0.9)',
       overlayTo: properties.OverlayTo?.rich_text?.[0]?.plain_text || 'rgba(79, 70, 229, 0.9)',
       overlayOpacity: properties.OverlayOpacity?.number ?? 0.9

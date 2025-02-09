@@ -30,7 +30,7 @@ export interface HeroSection {
   ctaUrl: string;
   ctaColor: string;
   ctaHoverColor: string;
-  heroImage: string;
+  imagePublicId: string;
   overlayFrom: string;
   overlayTo: string;
   overlayOpacity: number;
