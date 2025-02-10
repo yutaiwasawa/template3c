@@ -1,15 +1,17 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import type { AboutSection } from '../types/notion';
+'use client';
 
-interface AboutProps {
-  aboutData: AboutSection | null;
+import { motion } from 'framer-motion';
+import { getCloudinaryUrl } from '@/lib/cloudinary';
+import type { AboutSection } from '@/types/notion';
+
+interface ClientAboutProps {
+  aboutData: AboutSection;
 }
 
-const About = ({ aboutData }: AboutProps) => {
-  if (!aboutData || !aboutData.active) {
-    return null;
-  }
+export default function ClientAbout({ aboutData }: ClientAboutProps) {
+  const aboutImage = aboutData.imagePublicId 
+    ? getCloudinaryUrl(aboutData.imagePublicId, { width: 800, format: 'webp' })
+    : 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80';
 
   return (
     <section id="about" className="py-20 bg-black">
@@ -20,7 +22,10 @@ const About = ({ aboutData }: AboutProps) => {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-4xl font-bold mb-6 text-white">{aboutData.mainTitle}<br /><span className="text-purple-400">{aboutData.subTitle}</span></h2>
+          <h2 className="text-4xl font-bold mb-6 text-white">
+            {aboutData.mainTitle}<br />
+            <span className="text-purple-400">{aboutData.subTitle}</span>
+          </h2>
           {aboutData.description && (
             <div className="text-gray-400 mb-8 whitespace-pre-line">
               {aboutData.description}
@@ -61,7 +66,7 @@ const About = ({ aboutData }: AboutProps) => {
         >
           <div className="relative z-10">
             <img
-              src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+              src={aboutImage}
               alt="Digital Marketing Team"
               className="rounded-lg shadow-2xl"
             />
@@ -71,6 +76,4 @@ const About = ({ aboutData }: AboutProps) => {
       </div>
     </section>
   );
-};
-
-export default About;
+}

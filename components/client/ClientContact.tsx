@@ -1,8 +1,9 @@
-import React from 'react';
+'use client';
+
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Contact = () => {
+export default function ClientContact() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -108,6 +109,4 @@ const Contact = () => {
       </div>
     </section>
   );
-};
-
-export default Contact;
+}

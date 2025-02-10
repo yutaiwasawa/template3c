@@ -1,54 +1,35 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SiteConfig } from '../lib/notion';
-import { fetchNavigation } from '../lib/notion-client';
-import type { NavigationItem } from '../types/notion';
+import type { NavigationItem, SiteConfig } from '@/types/notion';
 
-interface HeaderProps {
+interface ClientHeaderProps {
+  navigation: NavigationItem[];
   siteConfig: SiteConfig;
 }
 
-const DEFAULT_NAVIGATION = [
-  { label: '私たちについて', url: '#about' },
-  { label: 'ブログ', url: '#blog' },
-  { label: 'サービス', url: '#services' },
-  { label: 'お問い合わせ', url: '#contact' }
-];
-
-const Header: React.FC<HeaderProps> = ({ siteConfig }) => {
+export default function ClientHeader({ navigation, siteConfig }: ClientHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [navigation, setNavigation] = useState<NavigationItem[]>(
-    DEFAULT_NAVIGATION.map(item => ({
-      ...item,
-      headerOrder: 0,
-      footerOrder: 0,
-      showInHeader: true,
-      showInFooter: false
-    }))
-  );
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
+    e.preventDefault();
+    setIsOpen(false);
 
-    const loadNavigation = async () => {
-      try {
-        const navItems = await fetchNavigation();
-        if (navItems && navItems.length > 0) {
-          setNavigation(navItems);
-        }
-      } catch (error) {
-        // エラー時はデフォルトのナビゲーションを維持
-      }
-    };
+    const element = document.querySelector(url);
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
-    loadNavigation();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const renderLogo = () => {
     if (siteConfig.logo.type === 'image') {
@@ -68,25 +49,6 @@ const Header: React.FC<HeaderProps> = ({ siteConfig }) => {
         {siteConfig.logo.content}
       </span>
     );
-  };
-
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
-    e.preventDefault();
-    setIsOpen(false);
-
-    setTimeout(() => {
-      const element = document.querySelector(url);
-      if (element) {
-        const headerOffset = 80;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
-      }
-    }, 100);
   };
 
   return (
@@ -155,6 +117,4 @@ const Header: React.FC<HeaderProps> = ({ siteConfig }) => {
       </AnimatePresence>
     </motion.nav>
   );
-};
-
-export default Header;
+}

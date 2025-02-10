@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client';
+
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import ServiceModal from './ServiceModal';
 
@@ -10,7 +12,7 @@ interface Service {
   icon: string;
 }
 
-const Services = () => {
+export default function ClientServices() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const services: Service[] = [
@@ -77,7 +79,6 @@ const Services = () => {
               transition={{ delay: index * 0.2 }}
               className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-xl hover:border-purple-500/50 transition duration-300"
             >
-              {/* <div className="text-4xl mb-6">{service.icon}</div> */}
               <h3 className="text-xl font-bold mb-4 text-white">{service.title}</h3>
               <p className="text-gray-400 mb-6">{service.description}</p>
               <div className="mb-6">
@@ -110,6 +111,4 @@ const Services = () => {
       />
     </section>
   );
-};
-
-export default Services;
+}

@@ -4,7 +4,8 @@
 
 ## 技術スタック
 
-- React + TypeScript
+- Next.js 14
+- TypeScript
 - Tailwind CSS
 - Framer Motion
 - Notion API

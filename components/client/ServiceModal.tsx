@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -12,7 +13,15 @@ interface ServiceModalProps {
   icon?: string;
 }
 
-const ServiceModal = ({ isOpen, onClose, title, description, price, features, icon }: ServiceModalProps) => {
+export default function ServiceModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  description, 
+  price, 
+  features, 
+  icon 
+}: ServiceModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -37,7 +46,6 @@ const ServiceModal = ({ isOpen, onClose, title, description, price, features, ic
               <X size={24} />
             </button>
 
-            {/* <div className="text-4xl mb-4">{icon}</div> */}
             <h3 className="text-2xl font-bold mb-4 text-white">{title}</h3>
             <p className="text-gray-400 mb-6">{description}</p>
             
@@ -74,6 +82,4 @@ const ServiceModal = ({ isOpen, onClose, title, description, price, features, ic
       )}
     </AnimatePresence>
   );
-};
-
-export default ServiceModal;
+}

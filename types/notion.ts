@@ -48,3 +48,27 @@ export interface AboutSection {
   ctaHoverColor: string;
   imagePublicId: string;
 }
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  publishedAt: string;
+  category: string;
+  coverImage: string;
+}
+
+export interface SiteConfig {
+  logo: {
+    type: 'text' | 'image';
+    content: string;
+    color: string;
+  };
+  baseColor: string;
+  mainColor: string;
+  accentColor: string;
+  fontColor: string;
+  font: string;
+}
